@@ -7,7 +7,7 @@ import { configProvider } from './app.config.provider';
 import { FilmsController } from './films/controller/films.controller';
 import { OrderController } from './order/controller/order.controller';
 import { FilmsService } from './films/service/films.service';
-import { OrderService } from './order/order.service';
+import { OrderService } from './order/service/order.service';
 
 @Module({
   imports: [
@@ -15,7 +15,9 @@ import { OrderService } from './order/order.service';
       isGlobal: true,
       cache: true,
     }),
-    // @todo: Добавьте раздачу статических файлов из public
+    ServeStaticModule.forRoot({
+      rootPath: path.join(__dirname, '..', 'public'),
+    }),
   ],
   controllers: [FilmsController, OrderController],
   providers: [configProvider, FilmsService, OrderService],
