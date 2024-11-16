@@ -17,6 +17,11 @@ interface IFilmScheduleResponse {
 interface IFilmsRepository {
   findAll: () => Promise<IFindAllFilmsResponse>;
   findById: (id: string) => Promise<IFilmScheduleResponse>;
+  updateFilmSchedule: (
+    filmId: string,
+    sessionId: string,
+    takenSeats: string[],
+  ) => Promise<void>;
 }
 
 @Injectable()
@@ -64,5 +69,19 @@ export class FilmsRepository implements IFilmsRepository {
       total: film.schedule.length,
       items: film.schedule.map(this.getFilmScheduleMapperFn()),
     };
+  }
+
+  async updateFilmSchedule(
+    filmId: string,
+    sessionId: string,
+    takenSeats: string[],
+  ): Promise<void> {
+    await this.filmModel.updateOne(
+      {
+        id: filmId,
+        'schedule.id': sessionId,
+      },
+      { $set: { 'schedule.$.taken': takenSeats } },
+    );
   }
 }
