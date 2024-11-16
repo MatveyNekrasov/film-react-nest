@@ -4,10 +4,9 @@ import { ConfigModule } from '@nestjs/config';
 import * as path from 'node:path';
 
 import { configProvider } from './app.config.provider';
-import { FilmsController } from './films/controller/films.controller';
 import { OrderController } from './order/controller/order.controller';
-import { FilmsService } from './films/service/films.service';
 import { OrderService } from './order/service/order.service';
+import { FilmsModule } from './films/films.module';
 
 @Module({
   imports: [
@@ -18,8 +17,9 @@ import { OrderService } from './order/service/order.service';
     ServeStaticModule.forRoot({
       rootPath: path.join(__dirname, '..', 'public'),
     }),
+    FilmsModule,
   ],
-  controllers: [FilmsController, OrderController],
-  providers: [configProvider, FilmsService, OrderService],
+  controllers: [OrderController],
+  providers: [configProvider, OrderService],
 })
 export class AppModule {}

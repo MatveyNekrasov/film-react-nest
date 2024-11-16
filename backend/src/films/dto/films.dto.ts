@@ -1,5 +1,4 @@
-//TODO описать DTO для запросов к /films
-export class getAllFilmsDTO {
+export class GetFilmDTO {
   id: string;
   rating: number;
   director: string;
@@ -11,7 +10,7 @@ export class getAllFilmsDTO {
   description: string;
 }
 
-export class getFilmSchedule {
+export class GetFilmScheduleDTO {
   id: string;
   daytime: Date;
   hall: string;
