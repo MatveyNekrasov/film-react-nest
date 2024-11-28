@@ -17,7 +17,6 @@ import { Schedule } from 'src/repository/films/schedule.entity';
         url: configService.get<string>('DATABASE_URL'),
         entities: [Film, Schedule],
         synchronize: false,
-        logging: true,
       }),
       inject: [ConfigService],
     }),

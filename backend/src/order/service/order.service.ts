@@ -37,7 +37,6 @@ export class OrderService {
       const { film, session, row, seat, daytime, price } = ticket;
 
       const filmData = await this.filmsRepository.findById(film);
-      console.log(filmData);
       if (!filmData) {
         throw new NotFoundException(`Фильм с id ${film} не найден`);
       }
