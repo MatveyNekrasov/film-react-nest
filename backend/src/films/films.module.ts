@@ -1,21 +1,26 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Films, filmSchema } from '../repository/films/model/films';
 import { FilmsService } from './service/films.service';
 import { FilmsRepository } from 'src/repository/films/films-repository';
 import { FilmsController } from './controller/films.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { DatabaseType } from 'typeorm';
+import { Film } from 'src/repository/films/films.entity';
+import { Schedule } from 'src/repository/films/schedule.entity';
 
 @Module({
   imports: [
-    MongooseModule.forRootAsync({
+    TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('DATABASE_URL'),
+      useFactory: (configService: ConfigService) => ({
+        type: configService.get<DatabaseType>('DATABASE_DRIVER'),
+        url: configService.get<string>('DATABASE_URL'),
+        entities: [Film, Schedule],
+        synchronize: false,
       }),
       inject: [ConfigService],
     }),
-    MongooseModule.forFeature([{ name: Films.name, schema: filmSchema }]),
+    TypeOrmModule.forFeature([Film, Schedule]),
   ],
   controllers: [FilmsController],
   providers: [FilmsService, FilmsRepository],

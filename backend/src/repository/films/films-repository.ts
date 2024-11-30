@@ -1,8 +1,9 @@
-import { Model } from 'mongoose';
-import { Films, IFilm } from './model/films';
 import { GetFilmDTO, GetFilmScheduleDTO } from 'src/films/dto/films.dto';
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Film } from './films.entity';
+import { Repository } from 'typeorm';
+import { Schedule } from './schedule.entity';
 
 interface IFindAllFilmsResponse {
   total: number;
@@ -26,7 +27,12 @@ interface IFilmsRepository {
 
 @Injectable()
 export class FilmsRepository implements IFilmsRepository {
-  constructor(@InjectModel(Films.name) private filmModel: Model<IFilm>) {}
+  constructor(
+    @InjectRepository(Film)
+    private filmRepository: Repository<Film>,
+    @InjectRepository(Schedule)
+    private scheduleRepository: Repository<Schedule>,
+  ) {}
 
   private getFilmMapperFn(): (Film) => GetFilmDTO {
     return (root) => ({
@@ -55,8 +61,7 @@ export class FilmsRepository implements IFilmsRepository {
   }
 
   async findAll(): Promise<IFindAllFilmsResponse> {
-    const items = await this.filmModel.find({});
-    const total = await this.filmModel.countDocuments({});
+    const [items, total] = await this.filmRepository.findAndCount();
     return {
       total,
       items: items.map(this.getFilmMapperFn()),
@@ -64,10 +69,18 @@ export class FilmsRepository implements IFilmsRepository {
   }
 
   async findById(id: string): Promise<IFilmScheduleResponse> {
-    const film = await this.filmModel.findOne({ id });
+    const film = await this.filmRepository.findOne({
+      where: { id },
+      relations: ['schedules'],
+    });
+
+    const sortedSchedules = film.schedules.sort((a, b) => {
+      return new Date(a.daytime).getTime() - new Date(b.daytime).getTime();
+    });
+
     return {
-      total: film.schedule.length,
-      items: film.schedule.map(this.getFilmScheduleMapperFn()),
+      total: sortedSchedules.length,
+      items: sortedSchedules.map(this.getFilmScheduleMapperFn()),
     };
   }
 
@@ -76,12 +89,9 @@ export class FilmsRepository implements IFilmsRepository {
     sessionId: string,
     takenSeats: string[],
   ): Promise<void> {
-    await this.filmModel.updateOne(
-      {
-        id: filmId,
-        'schedule.id': sessionId,
-      },
-      { $set: { 'schedule.$.taken': takenSeats } },
+    await this.scheduleRepository.update(
+      { id: sessionId, film: { id: filmId } },
+      { taken: takenSeats },
     );
   }
 }
